@@ -1,22 +1,14 @@
 package saver
 
 import (
+	"math"
 	"os"
 	"rt/renderer"
+	"rt/util"
 	"strconv"
 )
 
-func clip(x float64) int {
-	if x < 0 {
-		return 0
-	} else if x > 255 {
-		return 255
-	} else {
-		return int(x)
-	}
-}
-
-func SavePPMImageLineByLine(filename string, width, height int, c chan *[]renderer.Color) error {
+func SavePPMImageLineByLine(filename string, width, height, samplesPerPixel int, c chan *[]renderer.Color) error {
 	widthHeight := strconv.Itoa(width) + " " + strconv.Itoa(height)
 
 	header := "P3\n" + widthHeight + "\n255\n"
@@ -37,6 +29,9 @@ func SavePPMImageLineByLine(filename string, width, height int, c chan *[]render
 
 	rowNumber := 1
 
+	// Gamma correction
+	scale := 1.0 / float64(samplesPerPixel)
+
 	for {
 		row := <-c
 
@@ -45,11 +40,19 @@ func SavePPMImageLineByLine(filename string, width, height int, c chan *[]render
 		}
 
 		for j := 0; j < width; j++ {
-			red := clip((*row)[j].X * 255.99)
-			green := clip((*row)[j].Y * 255.99)
-			blue := clip((*row)[j].Z * 255.99)
+			red := (*row)[j].X
+			green := (*row)[j].Y
+			blue := (*row)[j].Z
 
-			_, writeErr := file.WriteString(strconv.Itoa(red) + " " + strconv.Itoa(green) + " " + strconv.Itoa(blue) + " ")
+			red = math.Sqrt(red * scale)
+			green = math.Sqrt(green * scale)
+			blue = math.Sqrt(blue * scale)
+
+			rowStr := strconv.Itoa(int(256*util.Clamp(red, 0, 0.999))) + " " +
+				strconv.Itoa(int(256*util.Clamp(green, 0, 0.999))) + " " +
+				strconv.Itoa(int(256*util.Clamp(blue, 0, 0.999))) + "\n"
+
+			_, writeErr := file.WriteString(rowStr)
 
 			if writeErr != nil {
 				return writeErr

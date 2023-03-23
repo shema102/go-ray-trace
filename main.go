@@ -4,6 +4,7 @@ import (
 	"fmt"
 	ren "rt/renderer"
 	"rt/saver"
+	"rt/util"
 	"sync"
 )
 
@@ -14,25 +15,32 @@ func main() {
 
 	// Image
 	aspectRatio := 16.0 / 9.0
-	width := 400
+	width := 1000
 	height := int(float64(width) / aspectRatio)
+	samplesPerPixel := 100
+	maxDepth := 50
+
+	// World
+	materialGround := ren.Lambertian{Albedo: ren.Color{X: 0.8, Y: 0.8, Z: 0.0}}
+	materialCenter := ren.Lambertian{Albedo: ren.Color{X: 0.1, Y: 0.2, Z: 0.5}}
+	materialLeft := ren.Dielectric{RefractiveIndex: 1.5}
+	materialRight := ren.Metal{Albedo: ren.Color{X: 0.8, Y: 0.6, Z: 0.2}, Fuzz: 1.0}
+
+	world := ren.CreateHittableList()
+	world.Add(ren.Sphere{Center: ren.Point3{X: 0, Y: -100.5, Z: -1}, Radius: 100, Material: materialGround})
+	world.Add(ren.Sphere{Center: ren.Point3{X: 0, Y: 0, Z: -1}, Radius: 0.5, Material: materialCenter})
+	world.Add(ren.Sphere{Center: ren.Point3{X: -1, Y: 0, Z: -1}, Radius: 0.5, Material: materialLeft})
+	world.Add(ren.Sphere{Center: ren.Point3{X: 1, Y: 0, Z: -1}, Radius: 0.5, Material: materialRight})
 
 	// Camera
-	viewportHeight := 2.0
-	viewportWidth := aspectRatio * viewportHeight
-	focalLength := 1.0
-
-	origin := ren.Vec3{X: 0, Y: 0, Z: 0}
-	horizontal := ren.Vec3{X: viewportWidth, Y: 0, Z: 0}
-	vertical := ren.Vec3{X: 0, Y: viewportHeight, Z: 0}
-	lowerLeftCorner := origin.Sub(horizontal.DivScalar(2)).Sub(vertical.DivScalar(2)).Sub(ren.Vec3{X: 0, Y: 0, Z: focalLength})
+	camera := ren.NewCamera(120, 16/9)
 
 	c := make(chan *[]ren.Color)
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 
-		err := saver.SavePPMImageLineByLine(filename, width, height, c)
+		err := saver.SavePPMImageLineByLine(filename, width, height, samplesPerPixel, c)
 		if err != nil {
 			fmt.Printf("Error during image save: %s", err)
 			return
@@ -41,17 +49,25 @@ func main() {
 
 	fmt.Printf("Rendering image to %s\n", filename)
 
+	startTime := util.Now()
+
 	for j := height - 1; j >= 0; j-- {
 		line := make([]ren.Color, width)
 
-		fmt.Printf("Saving row %d of %d\n", height-j, height)
+		fmt.Printf("Rendering row %d of %d\n", height-j, height)
 
 		for i := 0; i < width; i++ {
-			u := float64(i) / float64(width-1)
-			v := float64(j) / float64(height-1)
+			pixelColor := ren.Color{X: 0, Y: 0, Z: 0}
 
-			ray := ren.Ray{Origin: origin, Direction: lowerLeftCorner.Add(horizontal.MulScalar(u)).Add(vertical.MulScalar(v)).Sub(origin)}
-			line[i] = ray.RayColor()
+			for s := 0; s < samplesPerPixel; s++ {
+				u := (float64(i) + util.Random()) / float64(width-1)
+				v := (float64(j) + util.Random()) / float64(height-1)
+
+				ray := camera.GetRay(u, v)
+				pixelColor = pixelColor.Add(ren.RayColor(ray, world, maxDepth))
+			}
+
+			line[i] = pixelColor
 		}
 
 		c <- &line
@@ -62,4 +78,5 @@ func main() {
 	wg.Wait()
 
 	fmt.Printf("Image saved to %s\n", filename)
+	fmt.Printf("Render time: %f\n", util.Since(startTime))
 }

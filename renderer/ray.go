@@ -1,5 +1,7 @@
 package renderer
 
+import "math"
+
 type Ray struct {
 	Origin, Direction Vec3
 }
@@ -8,7 +10,23 @@ func (r Ray) At(t float64) Vec3 {
 	return r.Origin.Add(r.Direction.MulScalar(t))
 }
 
-func (r Ray) RayColor() Color {
+func RayColor(r Ray, world HittableList, depth int) Color {
+	hit, rec := world.Hit(r, 0.001, math.MaxFloat64)
+
+	if depth <= 0 {
+		return Color{0, 0, 0}
+	}
+
+	if hit {
+		is, scattered, attenuation := rec.Material.Scatter(r, rec)
+
+		if is {
+			return attenuation.Mul(RayColor(scattered, world, depth-1))
+		}
+
+		return Color{0, 0, 0}
+	}
+
 	unitDirection := r.Direction.UnitVector()
 
 	t := 0.5 * (unitDirection.Y + 1.0)
