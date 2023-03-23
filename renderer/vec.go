@@ -35,3 +35,7 @@ func (v Vec3) LengthSquared() float64 {
 func (v Vec3) Length() float64 {
 	return math.Sqrt(v.LengthSquared())
 }
+
+type Color = Vec3
+
+type Point3 = Vec3

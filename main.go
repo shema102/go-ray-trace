@@ -1,23 +1,40 @@
 package main
 
 import (
+	"fmt"
 	"rt/renderer"
 	"rt/saver"
+	"sync"
 )
 
+var wg sync.WaitGroup
+
 func main() {
+	height, width := 1024, 1024
 
-	image := make([][]renderer.Vec3, 512)
+	c := make(chan *[]renderer.Color)
 
-	for i := 0; i < 512; i++ {
-		image[i] = make([]renderer.Vec3, 512)
-		for j := 0; j < 512; j++ {
-			image[i][j] = renderer.Vec3{X: float64(i) / 512.0, Y: float64(j) / 512.0, Z: 0.25}
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+
+		err := saver.SavePPMImageLineByLine("test.ppm", width, height, c)
+		if err != nil {
+			fmt.Printf("Error during image save: %s", err)
+			return
 		}
+	}()
+
+	for i := 0; i < height; i++ {
+		line := make([]renderer.Color, width)
+		for j := 0; j < width; j++ {
+			line[j] = renderer.Color{X: float64(i) / float64(height), Y: float64(j) / float64(width), Z: 1}
+		}
+		c <- &line
 	}
 
-	err := saver.SavePPM("test.ppm", image)
-	if err != nil {
-		return
-	}
+	close(c)
+
+	wg.Wait()
 }

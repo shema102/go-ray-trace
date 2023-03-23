@@ -17,10 +17,7 @@ func clip(x float64) int {
 	}
 }
 
-func SavePPM(filename string, pixels [][]renderer.Vec3) error {
-	width := len(pixels)
-	height := len(pixels[0])
-
+func SavePPMImageLineByLine(filename string, width, height int, c chan *[]renderer.Color) error {
 	widthHeight := strconv.Itoa(width) + " " + strconv.Itoa(height)
 
 	header := "P3\n" + widthHeight + "\n255\n"
@@ -28,17 +25,6 @@ func SavePPM(filename string, pixels [][]renderer.Vec3) error {
 	image := header
 
 	fmt.Printf("Saving image to %s\n", filename)
-
-	for i := 0; i < width; i++ {
-		fmt.Printf("Saving row %d of %d\n", i, width)
-		for j := 0; j < height; j++ {
-			r := clip(pixels[i][j].X * 255.99)
-			g := clip(pixels[i][j].Y * 255.99)
-			b := clip(pixels[i][j].Z * 255.99)
-
-			image += strconv.Itoa(r) + " " + strconv.Itoa(g) + " " + strconv.Itoa(b) + "\n"
-		}
-	}
 
 	file, fileErr := os.Create(filename)
 
@@ -50,6 +36,32 @@ func SavePPM(filename string, pixels [][]renderer.Vec3) error {
 
 	if writeErr != nil {
 		return writeErr
+	}
+
+	rowNumber := 1
+
+	for {
+		row := <-c
+
+		if row == nil {
+			break
+		}
+
+		fmt.Printf("Saving row %d of %d\n", rowNumber, height)
+
+		for j := 0; j < width; j++ {
+			red := clip((*row)[j].X * 255.99)
+			green := clip((*row)[j].Y * 255.99)
+			blue := clip((*row)[j].Z * 255.99)
+
+			_, writeErr := file.WriteString(strconv.Itoa(red) + " " + strconv.Itoa(green) + " " + strconv.Itoa(blue) + " ")
+
+			if writeErr != nil {
+				return writeErr
+			}
+		}
+
+		rowNumber++
 	}
 
 	saveErr := file.Close()
