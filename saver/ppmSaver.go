@@ -1,7 +1,6 @@
 package saver
 
 import (
-	"fmt"
 	"os"
 	"rt/renderer"
 	"strconv"
@@ -24,8 +23,6 @@ func SavePPMImageLineByLine(filename string, width, height int, c chan *[]render
 
 	image := header
 
-	fmt.Printf("Saving image to %s\n", filename)
-
 	file, fileErr := os.Create(filename)
 
 	if fileErr != nil {
@@ -47,8 +44,6 @@ func SavePPMImageLineByLine(filename string, width, height int, c chan *[]render
 			break
 		}
 
-		fmt.Printf("Saving row %d of %d\n", rowNumber, height)
-
 		for j := 0; j < width; j++ {
 			red := clip((*row)[j].X * 255.99)
 			green := clip((*row)[j].Y * 255.99)
@@ -69,8 +64,6 @@ func SavePPMImageLineByLine(filename string, width, height int, c chan *[]render
 	if saveErr != nil {
 		return saveErr
 	}
-
-	fmt.Printf("Image saved to %s\n", filename)
 
 	return nil
 }
