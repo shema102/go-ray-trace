@@ -10,7 +10,7 @@ type Camera struct {
 	ViewPortHeight, ViewPortWidth                 float64
 }
 
-func NewCamera(vertFov, aspectRatio float64) Camera {
+func NewCamera(lookFrom, lookAt Point3, upVector Vec3, vertFov, aspectRatio float64) Camera {
 	theta := util.DegreesToRadians(vertFov)
 	halfHeight := math.Tan(theta / 2)
 
@@ -19,10 +19,14 @@ func NewCamera(vertFov, aspectRatio float64) Camera {
 
 	focalLength := 1.0
 
-	origin := Vec3{}
-	horizontal := Vec3{X: viewPortWidth}
-	vertical := Vec3{Y: viewPortHeight}
-	lowerLeftCorner := origin.Sub(horizontal.DivScalar(2)).Sub(vertical.DivScalar(2)).Sub(Vec3{Z: focalLength})
+	origin := lookFrom
+	w := lookFrom.Sub(lookAt).UnitVector()
+	u := upVector.Cross(w).UnitVector()
+	v := w.Cross(u)
+
+	horizontal := u.MulScalar(viewPortWidth)
+	vertical := v.MulScalar(viewPortHeight)
+	lowerLeftCorner := origin.Sub(horizontal.DivScalar(2)).Sub(vertical.DivScalar(2)).Sub(w.MulScalar(focalLength))
 
 	return Camera{
 		Origin:          origin,
