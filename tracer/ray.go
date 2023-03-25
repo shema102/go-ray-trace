@@ -1,6 +1,8 @@
-package renderer
+package tracer
 
-import "math"
+import (
+	"math"
+)
 
 type Ray struct {
 	Origin, Direction Vec3
@@ -10,7 +12,7 @@ func (r Ray) At(t float64) Vec3 {
 	return r.Origin.Add(r.Direction.MulScalar(t))
 }
 
-func RayColor(r Ray, world HittableList, depth int) Color {
+func TraceRay(r Ray, world World, depth int) Color {
 	hit, rec := world.Hit(r, 0.001, math.MaxFloat64)
 
 	if depth <= 0 {
@@ -18,10 +20,10 @@ func RayColor(r Ray, world HittableList, depth int) Color {
 	}
 
 	if hit {
-		is, scattered, attenuation := rec.Material.Scatter(r, rec)
+		isScattered, scatteredRay, attenuation := rec.Material.Scatter(r, rec)
 
-		if is {
-			return attenuation.Mul(RayColor(scattered, world, depth-1))
+		if isScattered {
+			return attenuation.Mul(TraceRay(scatteredRay, world, depth-1))
 		}
 
 		return Color{0, 0, 0}

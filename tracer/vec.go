@@ -1,4 +1,4 @@
-package renderer
+package tracer
 
 import (
 	"math"
@@ -53,18 +53,6 @@ func (v Vec3) Reflect(n Vec3) Vec3 {
 	return v.Sub(n.MulScalar(2 * v.Dot(n)))
 }
 
-//func (v Vec3) Refract(n Vec3, etaiOverEtat float64) (Vec3, bool) {
-//	uv := v.UnitVector()
-//	dt := uv.Dot(n)
-//	discriminant := 1.0 - etaiOverEtat*etaiOverEtat*(1-dt*dt)
-//	if discriminant > 0 {
-//		refracted := uv.Sub(n.MulScalar(dt)).MulScalar(etaiOverEtat).Sub(n.MulScalar(math.Sqrt(discriminant)))
-//		return refracted, true
-//	} else {
-//		return Vec3{}, false
-//	}
-//}
-
 func (v Vec3) Refract(n Vec3, etaiOverEtat float64) Vec3 {
 	cosTheta := math.Min(n.Dot(v.Negate()), 1.0)
 	rOutPerp := v.Add(n.MulScalar(cosTheta)).MulScalar(etaiOverEtat)
@@ -118,4 +106,9 @@ func RandomInHemisphere(normal Vec3) Vec3 {
 		return inUnitSphere
 	}
 	return inUnitSphere.Negate()
+}
+
+func RGBToColor(hex string) Color {
+	r, g, b := util.HexToRGB(hex)
+	return Color{float64(r) / 255, float64(g) / 255, float64(b) / 255}
 }

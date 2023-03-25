@@ -3,12 +3,12 @@ package saver
 import (
 	"math"
 	"os"
-	"rt/renderer"
+	t "rt/tracer"
 	"rt/util"
 	"strconv"
 )
 
-func SavePPMImageLineByLine(filename string, width, height, samplesPerPixel int, c chan *[]renderer.Color) error {
+func SavePPMImageLineByLine(filename string, width, height int, scale float64, c chan *[]t.Color) error {
 	widthHeight := strconv.Itoa(width) + " " + strconv.Itoa(height)
 
 	header := "P3\n" + widthHeight + "\n255\n"
@@ -26,11 +26,6 @@ func SavePPMImageLineByLine(filename string, width, height, samplesPerPixel int,
 	if writeErr != nil {
 		return writeErr
 	}
-
-	rowNumber := 1
-
-	// Gamma correction
-	scale := 1.0 / float64(samplesPerPixel)
 
 	for {
 		row := <-c
@@ -58,8 +53,6 @@ func SavePPMImageLineByLine(filename string, width, height, samplesPerPixel int,
 				return writeErr
 			}
 		}
-
-		rowNumber++
 	}
 
 	saveErr := file.Close()

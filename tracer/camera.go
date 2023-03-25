@@ -1,4 +1,4 @@
-package renderer
+package tracer
 
 import (
 	"math"
@@ -10,8 +10,8 @@ type Camera struct {
 	ViewPortHeight, ViewPortWidth                 float64
 }
 
-func NewCamera(fvof, aspectRatio float64) Camera {
-	theta := util.DegreesToRadians(fvof)
+func NewCamera(vertFov, aspectRatio float64) Camera {
+	theta := util.DegreesToRadians(vertFov)
 	halfHeight := math.Tan(theta / 2)
 
 	viewPortHeight := 2.0 * halfHeight
@@ -19,10 +19,10 @@ func NewCamera(fvof, aspectRatio float64) Camera {
 
 	focalLength := 1.0
 
-	origin := Vec3{0, 0, 0}
-	horizontal := Vec3{viewPortWidth, 0, 0}
-	vertical := Vec3{0, viewPortHeight, 0}
-	lowerLeftCorner := origin.Sub(horizontal.DivScalar(2)).Sub(vertical.DivScalar(2)).Sub(Vec3{0, 0, focalLength})
+	origin := Vec3{}
+	horizontal := Vec3{X: viewPortWidth}
+	vertical := Vec3{Y: viewPortHeight}
+	lowerLeftCorner := origin.Sub(horizontal.DivScalar(2)).Sub(vertical.DivScalar(2)).Sub(Vec3{Z: focalLength})
 
 	return Camera{
 		Origin:          origin,

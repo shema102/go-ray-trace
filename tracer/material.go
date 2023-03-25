@@ -1,4 +1,4 @@
-package renderer
+package tracer
 
 import (
 	"math"
@@ -42,6 +42,7 @@ func (m Metal) Scatter(rIn Ray, rec HitRecord) (bool, Ray, Vec3) {
 
 type Dielectric struct {
 	RefractiveIndex float64
+	Albedo          Vec3
 }
 
 func (d Dielectric) Schlick(cosine, refractionRatio float64) float64 {
@@ -52,7 +53,7 @@ func (d Dielectric) Schlick(cosine, refractionRatio float64) float64 {
 }
 
 func (d Dielectric) Scatter(rIn Ray, rec HitRecord) (bool, Ray, Vec3) {
-	attenuation := Vec3{1.0, 1.0, 1.0}
+	attenuation := d.Albedo
 
 	refractionRatio := 0.0
 
