@@ -16,12 +16,12 @@ func Clamp(x, min, max float64) float64 {
 	}
 }
 
-func Random() float64 {
+func RandomFloat() float64 {
 	return rand.Float64()
 }
 
-func RandomRange(min, max float64) float64 {
-	return min + (max-min)*Random()
+func RandomFloatInRange(min, max float64) float64 {
+	return min + (max-min)*RandomFloat()
 }
 
 func DegreesToRadians(degrees float64) float64 {

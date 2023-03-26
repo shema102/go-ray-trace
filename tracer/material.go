@@ -69,7 +69,7 @@ func (d Dielectric) Scatter(rIn Ray, rec HitRecord) (bool, Ray, Vec3) {
 	cannotRefract := refractionRatio*sinTheta > 1.0
 	direction := Vec3{}
 
-	if cannotRefract || d.Schlick(cosTheta, refractionRatio) > util.Random() {
+	if cannotRefract || d.Schlick(cosTheta, refractionRatio) > util.RandomFloat() {
 		direction = rIn.Direction.Reflect(rec.Normal)
 	} else {
 		direction = rIn.Direction.Refract(rec.Normal, refractionRatio)

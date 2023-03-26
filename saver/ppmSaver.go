@@ -1,19 +1,18 @@
 package saver
 
 import (
-	"math"
 	"os"
 	t "rt/tracer"
 	"rt/util"
 	"strconv"
 )
 
-func SavePPMImageLineByLine(filename string, width, height int, scale float64, c chan *[]t.Color) error {
+func SavePPMImage(filename string, width, height int, image *[][]t.Color) error {
 	widthHeight := strconv.Itoa(width) + " " + strconv.Itoa(height)
 
 	header := "P3\n" + widthHeight + "\n255\n"
 
-	image := header
+	imageStr := header
 
 	file, fileErr := os.Create(filename)
 
@@ -21,27 +20,23 @@ func SavePPMImageLineByLine(filename string, width, height int, scale float64, c
 		return fileErr
 	}
 
-	_, writeErr := file.WriteString(image)
+	_, writeErr := file.WriteString(imageStr)
 
 	if writeErr != nil {
 		return writeErr
 	}
 
-	for {
-		row := <-c
+	for i := 0; i < height; i++ {
+		row := (*image)[i]
 
 		if row == nil {
 			break
 		}
 
 		for j := 0; j < width; j++ {
-			red := (*row)[j].X
-			green := (*row)[j].Y
-			blue := (*row)[j].Z
-
-			red = math.Sqrt(red * scale)
-			green = math.Sqrt(green * scale)
-			blue = math.Sqrt(blue * scale)
+			red := row[j].X
+			green := row[j].Y
+			blue := row[j].Z
 
 			rowStr := strconv.Itoa(int(256*util.Clamp(red, 0, 0.999))) + " " +
 				strconv.Itoa(int(256*util.Clamp(green, 0, 0.999))) + " " +

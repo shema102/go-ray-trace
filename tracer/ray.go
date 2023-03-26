@@ -12,7 +12,7 @@ func (r Ray) At(t float64) Vec3 {
 	return r.Origin.Add(r.Direction.MulScalar(t))
 }
 
-func TraceRay(r Ray, world World, depth int) Color {
+func TraceRay(r Ray, world *World, depth int) Color {
 	hit, rec := world.Hit(r, 0.001, math.MaxFloat64)
 
 	if depth <= 0 {

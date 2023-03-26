@@ -25,6 +25,10 @@ func (v Vec3) MulScalar(s float64) Vec3 {
 	return Vec3{v.X * s, v.Y * s, v.Z * s}
 }
 
+func (v Vec3) Sqrt() Vec3 {
+	return Vec3{math.Sqrt(v.X), math.Sqrt(v.Y), math.Sqrt(v.Z)}
+}
+
 func (v Vec3) DivScalar(s float64) Vec3 {
 	return Vec3{v.X / s, v.Y / s, v.Z / s}
 }
@@ -79,11 +83,11 @@ type Color = Vec3
 type Point3 = Vec3
 
 func RandomVec3() Vec3 {
-	return Vec3{util.Random(), util.Random(), util.Random()}
+	return Vec3{util.RandomFloat(), util.RandomFloat(), util.RandomFloat()}
 }
 
 func RandomVec3Range(min, max float64) Vec3 {
-	return Vec3{util.RandomRange(min, max), util.RandomRange(min, max), util.RandomRange(min, max)}
+	return Vec3{util.RandomFloatInRange(min, max), util.RandomFloatInRange(min, max), util.RandomFloatInRange(min, max)}
 }
 
 func RandomInUnitSphere() Vec3 {
